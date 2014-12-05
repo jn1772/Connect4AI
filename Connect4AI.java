@@ -129,6 +129,69 @@ public class Connect4AI {
         return 0;
     }
     
+    int calculateScore(int aiScore){
+        System.out.println("Received aiscore = "+aiScore);
+        if(aiScore==0)return 0;
+        else if(aiScore==1)return 1;
+        else if(aiScore==2)return 10;
+        else if(aiScore==3)return 100;
+        else return 1000;
+    }
+    //Evaluate board favorableness for AI
+    public int evaluateBoard(Board b){
+      
+        int aiScore=0;
+        int score=0;
+        for(int i=6;i>=0;--i){
+            for(int j=0;j<=6;++j){
+                if(b.board[i][j]==0) continue;
+                if(j<=3){
+                    for(int k=0;k<4;++k){
+                        if(b.board[i][j+k]==1)aiScore++;
+                        else if(b.board[i][j+k]==2){aiScore=0;break;}
+                        else break;
+                    }
+                    score += calculateScore(aiScore);
+                    aiScore=0;
+                }
+                
+                //Checking cells up
+                if(i>=3){
+                    for(int k=0;k<4;++k){
+                            if(b.board[i-k][j]==1) aiScore++;
+                            else if(b.board[i-k][j]==2) {aiScore=0;break;}
+                            else break;
+                    }
+                    score += calculateScore(aiScore);
+                    aiScore=0;
+                } 
+                
+                //Checking diagonal up-right
+                if(j<=3 && i>= 3){
+                    for(int k=0;k<4;++k){
+                        if(b.board[i-k][j+k]==1) aiScore++;
+                        else if(b.board[i-k][j+k]==2) {aiScore=0;break;}
+                        else break;
+                    }
+                    score += calculateScore(aiScore);
+                    aiScore=0;
+                }
+                
+                //Checking diagonal up-left
+                if(j>=3 && i>=3){
+                    for(int k=0;k<4;++k){
+                        if(b.board[i-k][j-k]==1) aiScore++;
+                        else if(b.board[i-k][j-k]==2) {aiScore=0;break;}
+                        else break;
+                    }
+                    score += calculateScore(aiScore);
+                    aiScore=0;
+                }  
+            }
+        }
+        return score;
+    }
+    
     public static void main(String[] args) {
         Board b = new Board();
         Connect4AI ai = new Connect4AI(b);
@@ -136,7 +199,7 @@ public class Connect4AI {
         for(int i=0;i<49;++i){
             ai.letOpponentMove();
             ai.displayBoard(b);
-            System.out.println("Result = "+ai.gameResult(b));
+            System.out.println("Result = "+ai.gameResult(b)+", Score = "+ai.evaluateBoard(b));
         }
     }
 }
