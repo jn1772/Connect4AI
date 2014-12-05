@@ -7,13 +7,13 @@ class Board{
     
     public Board(){
         board = new byte[][]{
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
-            {0,0,0,0,0,0,0,},
+            {1,0,0,0,0,0,0,},
+            {2,0,0,0,0,0,0,},
+            {2,0,0,0,0,0,0,},
+            {2,0,0,1,0,0,0,},
+            {2,0,0,2,1,0,0,},
+            {2,0,0,2,2,0,0,},
+            {2,0,0,2,2,0,1,},            
         };
     } 
 }
@@ -114,7 +114,7 @@ public class Connect4AI {
                         if(b.board[i-k][j-k]==1) aiScore++;
                         else if(b.board[i-k][j-k]==2) humanScore++;
                         else break;
-                    }
+                    } 
                     if(aiScore==4)return 1; else if (humanScore==4)return 2;
                     aiScore = 0; humanScore = 0;
                 }  
@@ -125,68 +125,142 @@ public class Connect4AI {
             //Game has not ended yet
             if(b.board[0][i]==0)return -1;
         }
-        //Game has been drawn!
+        //Game draw!
         return 0;
     }
     
-    int calculateScore(int aiScore){
-        System.out.println("Received aiscore = "+aiScore);
+    int calculateScore(int aiScore, int moreMoves){ 
+        System.out.println("More moves required = "+moreMoves);
+        int moveScore = 4 - moreMoves;
         if(aiScore==0)return 0;
-        else if(aiScore==1)return 1;
-        else if(aiScore==2)return 10;
-        else if(aiScore==3)return 100;
+        else if(aiScore==1)return 1*moveScore;
+        else if(aiScore==2)return 10*moveScore;
+        else if(aiScore==3)return 100*moveScore;
         else return 1000;
     }
+    
     //Evaluate board favorableness for AI
     public int evaluateBoard(Board b){
       
-        int aiScore=0;
+        int aiScore=1;
         int score=0;
+        int blanks = 0;
+        int k=0, moreMoves=0;
         for(int i=6;i>=0;--i){
             for(int j=0;j<=6;++j){
-                if(b.board[i][j]==0) continue;
-                if(j<=3){
-                    for(int k=0;k<4;++k){
+                
+                if(b.board[i][j]==0 || b.board[i][j]==2) continue;
+                
+                System.out.println("Right");
+                
+                if(j<=3){ 
+                    for(k=1;k<4;++k){
                         if(b.board[i][j+k]==1)aiScore++;
-                        else if(b.board[i][j+k]==2){aiScore=0;break;}
-                        else break;
+                        else if(b.board[i][j+k]==2){aiScore=0;blanks = 0;break;}
+                        else blanks++;
                     }
-                    score += calculateScore(aiScore);
-                    aiScore=0;
+                    
+//                  System.out.println("AIScore = "+aiScore+" blanks = "+blanks+" k = "+k);
+                    moreMoves = 0; 
+                    if(blanks>0) 
+                        for(int c=1;c<4;++c){
+                            int column = j+c;
+                            for(int m=i; m<= 6;m++){
+                             if(b.board[m][column]==0)moreMoves++;
+                                else break;
+                            } 
+                        } 
+                    
+                    if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
+                    aiScore=1;   
                 }
                 
-                //Checking cells up
+                System.out.println("Up");
+                
                 if(i>=3){
-                    for(int k=0;k<4;++k){
-                            if(b.board[i-k][j]==1) aiScore++;
-                            else if(b.board[i-k][j]==2) {aiScore=0;break;}
+                    for(k=1;k<4;++k){
+                        if(b.board[i-k][j]==1)aiScore++;
+                        else if(b.board[i-k][j]==2){aiScore=0;break;} 
+                    }
+//                    System.out.println("AIScore = "+aiScore+" k = "+k);
+                    moreMoves = 0; 
+                    
+                    if(aiScore>0){
+                        int column = j;
+                        for(int m=i-k+1; m<=i-1;m++){
+                         if(b.board[m][column]==0)moreMoves++;
                             else break;
+                        }  
                     }
-                    score += calculateScore(aiScore);
-                    aiScore=0;
-                } 
-                
-                //Checking diagonal up-right
-                if(j<=3 && i>= 3){
-                    for(int k=0;k<4;++k){
-                        if(b.board[i-k][j+k]==1) aiScore++;
-                        else if(b.board[i-k][j+k]==2) {aiScore=0;break;}
-                        else break;
-                    }
-                    score += calculateScore(aiScore);
-                    aiScore=0;
+                    if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
+                    aiScore=1;  
                 }
                 
-                //Checking diagonal up-left
-                if(j>=3 && i>=3){
-                    for(int k=0;k<4;++k){
-                        if(b.board[i-k][j-k]==1) aiScore++;
-                        else if(b.board[i-k][j-k]==2) {aiScore=0;break;}
-                        else break;
+                System.out.println("Left");
+                if(j>=3){
+                    for(k=1;k<4;++k){
+                        if(b.board[i][j-k]==1)aiScore++;
+                        else if(b.board[i][j-k]==2){aiScore=0; blanks=0;break;}
+                        else blanks++;
                     }
-                    score += calculateScore(aiScore);
-                    aiScore=0;
-                }  
+                    moreMoves=0;
+                    if(blanks>0) 
+                        for(int c=1;c<4;++c){
+                            int column = j- c;
+                            for(int m=i; m<= 6;m++){
+                             if(b.board[m][column]==0)moreMoves++;
+                                else break;
+                            } 
+                        } 
+                    
+                    if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
+                    aiScore=1; 
+                }
+                
+                System.out.println("Top-right");
+                //Top-right diagonal
+                if(j<=3 && i>=3){
+                    for(k=1;k<4;++k){
+                        if(b.board[i-k][j+k]==1)aiScore++;
+                        else if(b.board[i-k][j+k]==2){aiScore=0;blanks=0;break;}
+                        else blanks++;                        
+                    }
+                    moreMoves=0;
+                    if(blanks>0){
+                        for(int c=1;c<4;++c){
+                            int column = j+c, row = i-c;
+                            for(int m=row;m<=6;++m){
+                                if(b.board[m][column]==0)moreMoves++;
+                                else if(b.board[m][column]==1);
+                                else break;
+                            }
+                        } 
+                        if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
+                        aiScore=1;
+                    }
+                }
+                
+                System.out.println("Top-left");
+                if(i>=3 && j>=3){
+                    for(k=1;k<4;++k){
+                        if(b.board[i-k][j-k]==1)aiScore++;
+                        else if(b.board[i-k][j-k]==2){aiScore=0;blanks=0;break;}
+                        else blanks++;                        
+                    }
+                    moreMoves=0;
+                    if(blanks>0){
+                        for(int c=1;c<4;++c){
+                            int column = j-c, row = i-c;
+                            for(int m=row;m<=6;++m){
+                                if(b.board[m][column]==0)moreMoves++;
+                                else if(b.board[m][column]==1);
+                                else break;
+                            }
+                        } 
+                        if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
+                        aiScore=1;
+                    }
+                } 
             }
         }
         return score;
@@ -196,11 +270,11 @@ public class Connect4AI {
         Board b = new Board();
         Connect4AI ai = new Connect4AI(b);
         
-        for(int i=0;i<49;++i){
-            ai.letOpponentMove();
+//        for(int i=0;i<49;++i){
+//            ai.letOpponentMove();
             ai.displayBoard(b);
             System.out.println("Result = "+ai.gameResult(b)+", Score = "+ai.evaluateBoard(b));
-        }
+//        }
     }
 }
 
