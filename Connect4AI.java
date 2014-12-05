@@ -3,70 +3,86 @@ package connect4ai;
 import java.util.Scanner;
 
 class Board{
-    byte[][] board = new byte[7][7];
+    byte[][] board = new byte[8][7];
     
     public Board(){
         board = new byte[][]{
-            {1,0,0,0,0,0,0,},
-            {2,0,0,0,0,0,0,},
-            {2,0,0,0,0,0,0,},
-            {2,0,0,1,0,0,0,},
-            {2,0,0,2,1,0,0,},
-            {2,0,0,2,2,0,0,},
-            {2,0,0,2,2,0,1,},            
+            {0,0,0,0,0,0,0,},
+            {0,0,0,0,0,0,0,},
+            {0,0,0,0,0,0,0,},
+            {0,0,0,0,0,0,0,},
+            {0,0,0,0,0,0,0,},
+            {0,0,0,0,0,0,0,},   
+            {0,0,0,0,0,0,0,}, 
         };
     } 
-}
-
-public class Connect4AI { 
-    private Board b;
-    private Scanner scan;
     
-    public Connect4AI(Board b){
-        this.b = b;
-        scan = new Scanner(System.in);
+    public boolean isLegalMove(int column){
+        return board[0][column]==0;
     }
     
     //Placing a Move on the board
     public boolean placeMove(int column, int player){
         if(!isLegalMove(column)) {System.out.println("Illegal move!"); return false;}
         for(int i=6;i>=0;--i){
-            if(b.board[i][column] == 0) {
-                b.board[i][column] = (byte)player;
+            if(board[i][column] == 0) {
+                board[i][column] = (byte)player;
                 return true;
             }
         }
         return false;
     }
     
-    //Opponent's turn
-    public boolean isLegalMove(int column){
-        return b.board[0][column]==0;
+    public void undoMove(int column){
+        for(int i=0;i<=6;++i){
+            if(board[i][column] != 0) {
+                board[i][column] = 0;
+                break;
+            }
+        }        
     }
-    
-    public void letOpponentMove(){
-        System.out.println("Your move (1-7): ");
-        int move = scan.nextInt();
-        while(move<1 || move > 7 || !isLegalMove(move-1)){
-            System.out.println("Invalid move.\n\nYour move (1-7): "); 
-            move = scan.nextInt();
-        }
-        
-        //Assume 2 is the opponent
-        placeMove(move-1, (byte)2); 
-    }
-    
     //Printing the board
-    public void displayBoard(Board b){
+    public void displayBoard(){
         System.out.println();
         for(int i=0;i<=6;++i){
             for(int j=0;j<=6;++j){
-                System.out.print(b.board[i][j]+" ");
+                System.out.print(board[i][j]+" ");
             }
             System.out.println();
         }
         System.out.println();
     }
+}
+
+public class Connect4AI { 
+    private Board b;
+    private Scanner scan;
+    private int nextMoveLocation=-1;
+    private int maxDepth = 5;
+    
+    public Connect4AI(Board b){
+        this.b = b;
+        scan = new Scanner(System.in);
+    }
+    
+    
+    
+    //Opponent's turn
+    
+    
+    public void letOpponentMove(){
+        System.out.println("Your move (1-7): ");
+        int move = scan.nextInt();
+        while(move<1 || move > 7 || !b.isLegalMove(move-1)){
+            System.out.println("Invalid move.\n\nYour move (1-7): "); 
+            move = scan.nextInt();
+        }
+        
+        //Assume 2 is the opponent
+        b.placeMove(move-1, (byte)2); 
+    }
+    
+    
     
     //Game Result
     public int gameResult(Board b){
@@ -129,8 +145,8 @@ public class Connect4AI {
         return 0;
     }
     
-    int calculateScore(int aiScore, int moreMoves){ 
-        System.out.println("More moves required = "+moreMoves);
+    int calculateScore(int aiScore, int moreMoves){  
+        if(moreMoves > 4) moreMoves = 6; //Get's a negative score
         int moveScore = 4 - moreMoves;
         if(aiScore==0)return 0;
         else if(aiScore==1)return 1*moveScore;
@@ -149,9 +165,7 @@ public class Connect4AI {
         for(int i=6;i>=0;--i){
             for(int j=0;j<=6;++j){
                 
-                if(b.board[i][j]==0 || b.board[i][j]==2) continue;
-                
-                System.out.println("Right");
+                if(b.board[i][j]==0 || b.board[i][j]==2) continue; 
                 
                 if(j<=3){ 
                     for(k=1;k<4;++k){
@@ -159,8 +173,7 @@ public class Connect4AI {
                         else if(b.board[i][j+k]==2){aiScore=0;blanks = 0;break;}
                         else blanks++;
                     }
-                    
-//                  System.out.println("AIScore = "+aiScore+" blanks = "+blanks+" k = "+k);
+                     
                     moreMoves = 0; 
                     if(blanks>0) 
                         for(int c=1;c<4;++c){
@@ -173,16 +186,13 @@ public class Connect4AI {
                     
                     if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
                     aiScore=1;   
-                }
-                
-                System.out.println("Up");
+                } 
                 
                 if(i>=3){
                     for(k=1;k<4;++k){
                         if(b.board[i-k][j]==1)aiScore++;
                         else if(b.board[i-k][j]==2){aiScore=0;break;} 
-                    }
-//                    System.out.println("AIScore = "+aiScore+" k = "+k);
+                    } 
                     moreMoves = 0; 
                     
                     if(aiScore>0){
@@ -195,8 +205,7 @@ public class Connect4AI {
                     if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
                     aiScore=1;  
                 }
-                
-                System.out.println("Left");
+                 
                 if(j>=3){
                     for(k=1;k<4;++k){
                         if(b.board[i][j-k]==1)aiScore++;
@@ -216,9 +225,7 @@ public class Connect4AI {
                     if(moreMoves!=0) score += calculateScore(aiScore, moreMoves);
                     aiScore=1; 
                 }
-                
-                System.out.println("Top-right");
-                //Top-right diagonal
+                 
                 if(j<=3 && i>=3){
                     for(k=1;k<4;++k){
                         if(b.board[i-k][j+k]==1)aiScore++;
@@ -239,8 +246,7 @@ public class Connect4AI {
                         aiScore=1;
                     }
                 }
-                
-                System.out.println("Top-left");
+                 
                 if(i>=3 && j>=3){
                     for(k=1;k<4;++k){
                         if(b.board[i-k][j-k]==1)aiScore++;
@@ -264,17 +270,79 @@ public class Connect4AI {
             }
         }
         return score;
+    } 
+    
+    public int minimax(int depth, int turn){
+        int gameResult = gameResult(b);
+        if(gameResult==1)return 1000;
+        else if(gameResult==2)return -1000;
+        else if(gameResult==0)return 0;
+        
+        if(depth==maxDepth)return evaluateBoard(b);
+        
+        int maxScore=Integer.MIN_VALUE, minScore = Integer.MAX_VALUE;
+        for(int j=0;j<=6;++j){
+            if(!b.isLegalMove(j)) continue;
+                
+            if(turn==1){
+                    b.placeMove(j, 1);
+                    int currentScore = minimax(depth+1, 2);
+                    maxScore = Math.max(currentScore, maxScore);
+                    if(depth==0){
+                        if(maxScore==currentScore) nextMoveLocation = j;
+                    }
+            }else if(turn==2){
+                    b.placeMove(j, 2);
+                    int currentScore = minimax(depth+1, 1);
+                    minScore = Math.min(currentScore, minScore);
+            }
+            b.undoMove(j);
+        }
+        return turn==1?maxScore:minScore;
+    }
+    
+    public int getAIMove(){
+        nextMoveLocation = -1;
+        minimax(0, 1);
+        return nextMoveLocation;
+    }
+    
+    public void playAgainstAIConsole(){
+        int turn = 1;
+        int humanMove=-1;
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Would you like to play first? (yes/no) ");
+        String answer = scan.next().trim();
+        
+        if(answer.equalsIgnoreCase("yes")) turn = 2; 
+        letOpponentMove();
+        b.displayBoard();
+        b.placeMove(getAIMove(), 1);
+        b.displayBoard();
+        
+        while(true){ 
+            letOpponentMove();
+            b.displayBoard();
+            
+            int gameResult = gameResult(b);
+            if(gameResult==1){System.out.println("AI Wins!");break;}
+            else if(gameResult==2){System.out.println("You Win!");break;}
+            else if(gameResult==0){System.out.println("Draw!");break;}
+            
+            b.placeMove(getAIMove(), 1);
+            b.displayBoard();
+            gameResult = gameResult(b);
+            if(gameResult==1){System.out.println("AI Wins!");break;}
+            else if(gameResult==2){System.out.println("You Win!");break;}
+            else if(gameResult==0){System.out.println("Draw!");break;}
+        }
+        
     }
     
     public static void main(String[] args) {
         Board b = new Board();
-        Connect4AI ai = new Connect4AI(b);
-        
-//        for(int i=0;i<49;++i){
-//            ai.letOpponentMove();
-            ai.displayBoard(b);
-            System.out.println("Result = "+ai.gameResult(b)+", Score = "+ai.evaluateBoard(b));
-//        }
+        Connect4AI ai = new Connect4AI(b);  
+        ai.playAgainstAIConsole();
     }
 }
 
