@@ -292,7 +292,11 @@ public class Connect4AI {
                     if(depth==0){
                         System.out.println("Score for location "+j+" = "+currentScore);
                         if(maxScore==currentScore) nextMoveLocation = j;
-                        if(maxScore==Integer.MAX_VALUE){b.undoMove(j);break;}
+                        
+			if(maxScore==Integer.MAX_VALUE){
+			//We know we're going to win if we play here.
+		        //So no need of further evaluations.
+			b.undoMove(j);break;}
                     }
             }else if(turn==2){
                     b.placeMove(j, 2);

@@ -1,3 +1,4 @@
+ 
 import java.util.Scanner;
 
 class Board{
@@ -55,7 +56,7 @@ public class Connect4AI {
     private Board b;
     private Scanner scan;
     private int nextMoveLocation=-1;
-    private int maxDepth = 5;
+    private int maxDepth = 9;
     
     public Connect4AI(Board b){
         this.b = b;
@@ -273,44 +274,55 @@ public class Connect4AI {
         return score;
     } 
     
-    public int minimax(int depth, int turn){
+    public int minimax(int depth, int turn, int alpha, int beta){
+        
+        if(beta<=alpha){if(turn == 1) return Integer.MAX_VALUE; else return Integer.MIN_VALUE; }
         int gameResult = gameResult(b);
-        if(gameResult==1)return Integer.MAX_VALUE;
-        else if(gameResult==2)return Integer.MIN_VALUE;
-        else if(gameResult==0)return 0;
+        
+        if(gameResult==1)return Integer.MAX_VALUE/2;
+        else if(gameResult==2)return Integer.MIN_VALUE/2;
+        else if(gameResult==0)return 0; 
         
         if(depth==maxDepth)return evaluateBoard(b);
         
         int maxScore=Integer.MIN_VALUE, minScore = Integer.MAX_VALUE;
-        for(int j=0;j<=6;++j){
-            if(!b.isLegalMove(j)) continue;
                 
+        for(int j=0;j<=6;++j){
+            
+            int currentScore = 0;
+            
+            if(!b.isLegalMove(j)) continue; 
+            
             if(turn==1){
                     b.placeMove(j, 1);
-                    int currentScore = minimax(depth+1, 2);
-                    maxScore = Math.max(currentScore, maxScore);
+                    currentScore = minimax(depth+1, 2, alpha, beta);
+                    
                     if(depth==0){
                         System.out.println("Score for location "+j+" = "+currentScore);
-                        if(maxScore==currentScore) nextMoveLocation = j;
-                        
-			if(maxScore==Integer.MAX_VALUE){
-			//We know we're going to win if we play here.
-		        //So no need of further evaluations.
-			b.undoMove(j);break;}
+                        if(currentScore > maxScore)nextMoveLocation = j; 
+                        if(currentScore == Integer.MAX_VALUE/2){b.undoMove(j);break;}
                     }
-            }else if(turn==2){
+                    
+                    maxScore = Math.max(currentScore, maxScore);
+                    
+                    alpha = Math.max(currentScore, alpha);  
+            } 
+            else if(turn==2){
                     b.placeMove(j, 2);
-                    int currentScore = minimax(depth+1, 1);
+                    currentScore = minimax(depth+1, 1, alpha, beta);
                     minScore = Math.min(currentScore, minScore);
-            }
-            b.undoMove(j);
-        }
+                    
+                    beta = Math.min(currentScore, beta); 
+            }  
+            b.undoMove(j); 
+            if(currentScore == Integer.MAX_VALUE || currentScore == Integer.MIN_VALUE) break; 
+        }  
         return turn==1?maxScore:minScore;
     }
     
     public int getAIMove(){
         nextMoveLocation = -1;
-        minimax(0, 1);
+        minimax(0, 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
         return nextMoveLocation;
     }
     
@@ -320,9 +332,9 @@ public class Connect4AI {
         System.out.println("Would you like to play first? (yes/no) ");
         String answer = scan.next().trim();
         
-        if(answer.equalsIgnoreCase("yes")) letOpponentMove();
+       if(answer.equalsIgnoreCase("yes")) letOpponentMove();
         b.displayBoard();
-        b.placeMove(5, 1);
+        b.placeMove(3, 1);
         b.displayBoard();
         
         while(true){ 
