@@ -1,5 +1,3 @@
-package connect4ai;
-
 import java.util.Scanner;
 
 class Board{
@@ -57,7 +55,7 @@ public class Connect4AI {
     private Board b;
     private Scanner scan;
     private int nextMoveLocation=-1;
-    private int maxDepth = 8;
+    private int maxDepth = 5;
     
     public Connect4AI(Board b){
         this.b = b;
@@ -294,6 +292,11 @@ public class Connect4AI {
                     if(depth==0){
                         System.out.println("Score for location "+j+" = "+currentScore);
                         if(maxScore==currentScore) nextMoveLocation = j;
+                        
+			if(maxScore==Integer.MAX_VALUE){
+			//We know we're going to win if we play here.
+		        //So no need of further evaluations.
+			b.undoMove(j);break;}
                     }
             }else if(turn==2){
                     b.placeMove(j, 2);
@@ -319,7 +322,7 @@ public class Connect4AI {
         
         if(answer.equalsIgnoreCase("yes")) letOpponentMove();
         b.displayBoard();
-        b.placeMove(3, 1);
+        b.placeMove(5, 1);
         b.displayBoard();
         
         while(true){ 
